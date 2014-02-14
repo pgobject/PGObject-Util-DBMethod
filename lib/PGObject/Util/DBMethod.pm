@@ -3,10 +3,14 @@ package PGObject::Util::DBMethod;
 use 5.006;
 use strict;
 use warnings;
+use Exporter;
+
+use base qw(Exporter);
 
 =head1 NAME
 
-PGObject::Util::DBMethod - The great new PGObject::Util::DBMethod!
+PGObject::Util::DBMethod - Declarative stored procedure <-> object mappings for
+the PGObject Framework
 
 =head1 VERSION
 
@@ -19,34 +23,53 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+Without PGObject::Util::DBobject, you would:
 
-Perhaps a little code snippet.
+    sub mymethod {
+        my ($self) = @_;
+        return $self->call_dbmethod(funcname => 'foo');
+    }
 
-    use PGObject::Util::DBMethod;
+With this you'd do this instead:
 
-    my $foo = PGObject::Util::DBMethod->new();
-    ...
+    dbmethod mymethod => (funcname => 'foo');
 
 =head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+This exports only dbmethod.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 dbmethod
 
 =cut
 
-sub function1 {
-}
+sub dbmethod {
+    my $name = shift;
+    my %defaultargs = @_;
+    my ($target) = caller;
 
-=head2 function2
-
-=cut
-
-sub function2 {
+    my $coderef = sub {
+       my $self = shift @_;
+       my %args = @_;
+       for my $key (keys %{$defaultargs{args}}){
+           $args{args}->{$key} = $defaultargs{args}->{$key} 
+                  unless $args{args}->{$key} or $defaultargs{strict_args};
+       }
+       for my $key(keys %defaultargs){
+           next if grep(/^$key$/, qw(strict_args args returns_objects));
+           $args{$key} = $defaultargs{$key} if $defaultargs{$key};
+       }
+       my @results = $self->call_dbmethod(%args);
+       if ($defaultargs{returns_objects}){
+           for my $ref(@results){
+               $ref = "$target"->new(%$ref);
+           }
+       }
+       return @results;
+    };
+    no strict 'refs';
+    *{"${target}::${name}"} = $coderef;
 }
 
 =head1 AUTHOR
