@@ -3,9 +3,7 @@ package PGObject::Util::DBMethod;
 use 5.006;
 use strict;
 use warnings;
-use Exporter;
-
-use base qw(Exporter);
+use Exporter 'import';
 
 =head1 NAME
 
@@ -36,11 +34,44 @@ With this you'd do this instead:
 
 =head1 EXPORT
 
-This exports only dbmethod.
+This exports only dbmethod, which it always exports.
+
+=cut
+
+our @EXPORT = qw(dbmethod);
 
 =head1 SUBROUTINES/METHODS
 
 =head2 dbmethod
+
+use as dbmethod (name => (default_arghash))
+
+For example:
+
+  package MyObject;
+  use PGObject::Utils::DBMethod;
+
+  dbmethod save => (
+                                 strict_args => 0,
+                                    funcname => 'save_user', 
+                                  funcschema => 'public',
+                                        args => { admin => 0 },
+  );
+  $MyObject->save(args => {username => 'foo', password => 'bar'});
+
+Special arguments are:
+
+=over
+
+=item strict_args
+
+If true, args override args provided by user.
+
+=item returns_objects
+
+If true, bless returned hashrefs before returning them.
+
+=back
 
 =cut
 
@@ -55,6 +86,8 @@ sub dbmethod {
        for my $key (keys %{$defaultargs{args}}){
            $args{args}->{$key} = $defaultargs{args}->{$key} 
                   unless $args{args}->{$key} or $defaultargs{strict_args};
+           $args{args}->{$key} = $defaultargs{args}->{$key} 
+                 if $defaultargs{strict_args};
        }
        for my $key(keys %defaultargs){
            next if grep(/^$key$/, qw(strict_args args returns_objects));
