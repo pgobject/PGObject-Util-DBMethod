@@ -44,7 +44,7 @@ dbmethod objectstest => (
 );
 
 package main;
-use Test::More tests => 22;
+use Test::More tests => 27;
 
 ok(my $test = PGOTest::new({}), 'Test object constructor success');
 
@@ -63,6 +63,14 @@ is($ref->{funcname}, 'foo', 'strict arg test, funcname correctly set');
 is($ref->{funcschema}, 'foo2', 'strict arg test, funcschema correctly set');
 is($ref->{args}->{id}, undef, 'strict arg test, id arg correctly unset');
 is($ref->{args}->{foo}, 1, 'strict arg test, foo arg correctly set');
+
+ok($ref = $test->strictundefargtest(args => {id => 2, foo => 1}), 
+     'Strict Arg Test returned results, scalar context.');
+
+is($ref->{funcname}, 'foo', 'strict arg test (scalar), funcname correctly set');
+is($ref->{funcschema}, 'foo2', 'strict arg test (scalar), funcschema correctly set');
+is($ref->{args}->{id}, undef, 'strict arg test (scalar), id arg correctly unset');
+is($ref->{args}->{foo}, 1, 'strict arg test (scalar), foo arg correctly set');
 
 ok(($ref) = $test->nostrictargtest(args => {id => 2, foo => 1}), 
      'No Strict Arg Test returned results.');
