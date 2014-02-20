@@ -1,5 +1,8 @@
 Revision history for PGObject-Util-DBMethod
 
+0.02	2014-02-17
+	Added scalar return handling, so $ref = $self->mymethod returns the
+	first row found.
+
 0.01    2014-02-15
         First version, released on an unsuspecting world.
-
