@@ -63,6 +63,12 @@ Special arguments are:
 
 =over
 
+=item arg_lit
+
+It set must point to a hashref.  Used to allow mapping of function arguments
+to arg hash elements.  If this is set then funcname, funcschema, etc, cannot be
+overwritten on the call.
+
 =item strict_args
 
 If true, args override args provided by user.
@@ -82,7 +88,12 @@ sub dbmethod {
 
     my $coderef = sub {
        my $self = shift @_;
-       my %args = @_;
+       my %args;
+       if ($defaultargs{arg_list}){
+           %args = ( args => _process_args($defaultargs{arg_list}, @_) );
+       } else {
+           %args = @_;
+       }
        for my $key (keys %{$defaultargs{args}}){
            $args{args}->{$key} = $defaultargs{args}->{$key} 
                   unless $args{args}->{$key} or $defaultargs{strict_args};
@@ -104,6 +115,27 @@ sub dbmethod {
     };
     no strict 'refs';
     *{"${target}::${name}"} = $coderef;
+}
+
+# private method _process_args.
+# first arg $arrayref of argnames
+# after that we just pass in @_ from the function call
+# then we return a hash with the args as specified.
+
+sub _process_args {
+    my $arglist = shift @_;
+    my @args = @_;
+
+    my $arghref = {};
+
+    my $maxlen = scalar @_;
+    my $it = 1;
+    for my $argname (@$arglist){
+        last if $it > $maxlen;
+        $arghref->{$argname} = shift @args;
+        ++$it;
+    }
+    return $arghref;
 }
 
 =head1 AUTHOR

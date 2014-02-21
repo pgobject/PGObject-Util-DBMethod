@@ -43,8 +43,14 @@ dbmethod objectstest => (
     args => {id => 1}
 );
 
+dbmethod arglisttest => (
+     funcname => 'foo',
+     funcschema => 'foo',
+     arg_list => ['id']
+);
+
 package main;
-use Test::More tests => 27;
+use Test::More tests => 31;
 
 ok(my $test = PGOTest::new({}), 'Test object constructor success');
 
@@ -88,3 +94,9 @@ is($ref->{funcschema}, 'foo2', 'no strict arg test, funcschema correctly set');
 is($ref->{args}->{id}, 2, 'no strict arg test, id arg correctly set');
 is($ref->{args}->{foo}, 1, 'no strict arg test, foo arg correctly set');
 isa_ok($ref, 'PGOTest', 'Return reference is blessed');
+
+
+ok(($ref) = $test->arglisttest(1), 'Arg List Test returned results.');
+is($ref->{funcname}, 'foo', 'no strict arg test, funcname correctly set');
+is($ref->{funcschema}, 'foo', 'no strict arg test, funcschema correctly set');
+is($ref->{args}->{id}, 1, 'no strict arg test, id arg correctly set');
