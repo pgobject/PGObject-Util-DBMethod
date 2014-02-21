@@ -12,7 +12,7 @@ WriteMakefile(
       ? ('LICENSE'=> 'BSD')
       : ()),
     PL_FILES            => {},
-    PREREQ_PM => {
+    BUILD_REQUIRES => {
         'Test::More' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
