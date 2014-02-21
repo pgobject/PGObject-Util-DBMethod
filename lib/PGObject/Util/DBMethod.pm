@@ -106,6 +106,10 @@ sub dbmethod {
                $ref = "$target"->new(%$ref);
            }
        }
+       if ($defaultargs{merge_back}){
+           _merge($self, shift @results);
+           return $self;
+       }
        return shift @results unless wantarray;
        return @results;
     };
