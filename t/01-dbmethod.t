@@ -57,7 +57,7 @@ dbmethod arglisttest => (
 );
 
 package main;
-use Test::More tests => 35;
+use Test::More tests => 36;
 
 ok(my $test = PGOTest::new({}), 'Test object constructor success');
 
