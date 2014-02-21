@@ -50,8 +50,14 @@ dbmethod mergetest => (
     args => {id => 1}
 );
 
+dbmethod arglisttest => (
+     funcname => 'foo',
+     funcschema => 'foo',
+     arg_list => ['id']
+);
+
 package main;
-use Test::More tests => 32;
+use Test::More tests => 35;
 
 ok(my $test = PGOTest::new({}), 'Test object constructor success');
 
@@ -101,3 +107,8 @@ is $test->{funcname}, 'foo', 'merge test merged funcname';
 is $test->{funcschema}, 'foo2', 'merge test merged funcschema';
 is $test->{args}->{id2}, 1, 'Merged args id2';
 is $test->{args}->{id}, 1, 'Merged args id from arg';
+
+ok(($ref) = $test->arglisttest(1), 'Arg List Test returned results.');
+is($ref->{funcname}, 'foo', 'no strict arg test, funcname correctly set');
+is($ref->{funcschema}, 'foo', 'no strict arg test, funcschema correctly set');
+is($ref->{args}->{id}, 1, 'no strict arg test, id arg correctly set');
