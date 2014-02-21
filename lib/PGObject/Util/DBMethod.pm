@@ -71,6 +71,13 @@ If true, args override args provided by user.
 
 If true, bless returned hashrefs before returning them.
 
+=item merge_back
+
+If true, merges the first record back to the $self at the end before returning,
+and returns $self.  Note this is a copy only one layer deep which is fine for 
+the use case of merging return values from the database into the current 
+object.
+
 =back
 
 =cut
@@ -104,6 +111,25 @@ sub dbmethod {
     };
     no strict 'refs';
     *{"${target}::${name}"} = $coderef;
+}
+
+# private function _merge($dest, $src)
+# used to merge incoming db rows to a hash ref.
+# hash table entries in $src overwrite those in $dest.
+# Since this is an incoming row, we can generally assume we are not having to 
+# do a deep copy.
+
+sub _merge {
+    my ($dest, $src) = @_;
+    if (eval {$dest->can('has') and $dest->can('extends')}){
+       # Moo or Moose.  Use accessors, though better would be to just return
+       # objects in this case.
+       for my $att (keys %$src){
+           $dest->can($att)->($dest, $src->{$att}) if $dest->can($att);
+       }
+    } else {
+        $dest->{$_} = $src->{$_} for (keys %$src);
+    }
 }
 
 =head1 AUTHOR
