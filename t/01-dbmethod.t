@@ -46,7 +46,7 @@ dbmethod objectstest => (
 dbmethod arglisttest => (
      funcname => 'foo',
      funcschema => 'foo',
-     arglist => ['id']
+     arg_list => ['id']
 );
 
 package main;
