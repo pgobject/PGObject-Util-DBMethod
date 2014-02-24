@@ -1,4 +1,4 @@
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
@@ -15,6 +15,7 @@ WriteMakefile(
     BUILD_REQUIRES => {
         'Test::More' => 0,
     },
+    MIN_PERL_VERSION    => '5.008001',
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'PGObject-Util-DBMethod-*' },
 );

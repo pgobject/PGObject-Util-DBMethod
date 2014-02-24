@@ -1,6 +1,6 @@
 package PGObject::Util::DBMethod;
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 use Exporter 'import';
@@ -12,11 +12,11 @@ the PGObject Framework
 
 =head1 VERSION
 
-Version 1.00
+Version 1.00.001
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.00.001';
 
 
 =head1 SYNOPSIS
