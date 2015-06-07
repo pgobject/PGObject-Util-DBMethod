@@ -12,11 +12,11 @@ the PGObject Framework
 
 =head1 VERSION
 
-Version 1.00.001
+Version 1.1.0
 
 =cut
 
-our $VERSION = '1.00.001';
+our $VERSION = '1.1.0';
 
 
 =head1 SYNOPSIS
@@ -63,7 +63,7 @@ Special arguments are:
 
 =over
 
-=item arg_lit
+=item args
 
 It set must point to a hashref.  Used to allow mapping of function arguments
 to arg hash elements.  If this is set then funcname, funcschema, etc, cannot be
@@ -88,42 +88,74 @@ object.
 
 =cut
 
+my %code = (
+     intro => '
+           sub {
+               my ($self, @args) = @_;
+               my %dbargs = @args unless $default_args{arg_list};
+               for (keys %default_args ){
+                    $dbargs{$_} = $default_args{$_} unless defined $dbargs{$_};
+               }
+               for (keys %{$default_args{args}}){
+                    $dbargs{args}->{$_} = $default_args{args}->{$_}
+                        unless defined $dbargs{args}->{$_};
+               }',
+     args => {
+         args => '',
+         arg_list => '
+               my @arglist = @args;
+               my @argnames =  @{$default_args{arg_list}};
+               $dbargs{args} = { map { ($_,  shift @arglist) } 
+                              @argnames };',
+         default => '
+               my $dbargs = {@args};', # copy
+     },
+     arg_precedence => {
+         strict => '
+               $dbargs{$_} = $default_args{$_} 
+                   for grep {$_ ne "args"} keys %default_args;
+               $dbargs{args}->{$_} = $default_args{args}->{$_}
+                   for keys %{$default_args{args}};',
+         default => '',
+     },
+     run => '
+               my @results = $self->call_dbmethod(%dbargs);',
+     returns => { 
+          objects => '
+               @results =  map { $self->new($_) } @results;',
+          merged_back => '
+               _merge($self, $results[0]);
+               @results = ($results[0]);',
+          default => '',
+     },
+     final => '
+               return wantarray ? @results : shift @results;
+           }',
+);
+
 sub dbmethod {
     my $name = shift;
-    my %defaultargs = @_;
+    my %default_args = @_;
     my ($target) = caller;
-
-    my $coderef = sub {
-       my $self = shift @_;
-       my %args;
-       if ($defaultargs{arg_list}){
-           %args = ( args => _process_args($defaultargs{arg_list}, @_) );
-       } else {
-           %args = @_;
-       }
-       for my $key (keys %{$defaultargs{args}}){
-           $args{args}->{$key} = $defaultargs{args}->{$key} 
-                  unless $args{args}->{$key} or $defaultargs{strict_args};
-           $args{args}->{$key} = $defaultargs{args}->{$key} 
-                 if $defaultargs{strict_args};
-       }
-       for my $key(keys %defaultargs){
-           next if grep(/^$key$/, qw(strict_args args returns_objects));
-           $args{$key} = $defaultargs{$key} if $defaultargs{$key};
-       }
-       my @results = $self->call_dbmethod(%args);
-       if ($defaultargs{returns_objects}){
-           for my $ref(@results){
-               $ref = "$target"->new(%$ref);
-           }
-       }
-       if ($defaultargs{merge_back}){
-           _merge($self, shift @results);
-           return $self;
-       }
-       return shift @results unless wantarray;
-       return @results;
-    };
+    my $returns;
+    my @arg_opts = qw(args arg_list);
+    my ($args) = grep { $default_args{$_} } @arg_opts;
+    $args ||= 'default';
+    if ($default_args{returns_objects}){
+       $returns = 'objects';
+    } elsif ($default_args{merge_back}) {
+       $returns = 'merged_back';
+    } else {
+       $returns = 'default';
+    }
+    my $arg_prec = $default_args{strict_args} ? 'strict' : 'default';
+    my $codestr = join '',
+                  $code{intro}, $code{args}->{$args}, 
+                  $code{arg_precedence}->{$arg_prec}, $code{run},
+                  $code{returns}->{$returns}, $code{final};
+    warn $codestr if $ENV{PGOBJECT_DEBUG};
+    local $@ = undef;
+    my $coderef = eval $codestr || die $@;
     no strict 'refs';
     *{"${target}::${name}"} = $coderef;
 }

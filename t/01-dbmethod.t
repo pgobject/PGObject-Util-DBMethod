@@ -10,7 +10,7 @@ sub call_dbmethod {
 
 sub new {
     my ($self) = shift @_;
-    my %args = @_;
+    my %args = ref $_[0]? %{$_[0]} : @_;
     $self = \%args if %args;
     $self ||= {};
     bless $self;
@@ -103,12 +103,15 @@ is($ref->{args}->{foo}, 1, 'no strict arg test, foo arg correctly set');
 isa_ok($ref, 'PGOTest', 'Return reference is blessed');
 
 ok $ref = $test->mergetest(args => {id2 => 1}), 'merge test successfully returned';
+
 is $test->{funcname}, 'foo', 'merge test merged funcname';
 is $test->{funcschema}, 'foo2', 'merge test merged funcschema';
 is $test->{args}->{id2}, 1, 'Merged args id2';
 is $test->{args}->{id}, 1, 'Merged args id from arg';
 
-ok(($ref) = $test->arglisttest(1), 'Arg List Test returned results.');
+ok(($ref) = $test->arglisttest(2), 'Arg List Test returned results.');
+use Data::Dumper;
+diag(Dumper($ref, $test));
 is($ref->{funcname}, 'foo', 'no strict arg test, funcname correctly set');
 is($ref->{funcschema}, 'foo', 'no strict arg test, funcschema correctly set');
-is($ref->{args}->{id}, 1, 'no strict arg test, id arg correctly set');
+is($ref->{args}->{id}, 2, 'no strict arg test, id arg correctly set');
