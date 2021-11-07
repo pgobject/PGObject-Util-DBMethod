@@ -15,6 +15,9 @@ WriteMakefile(
     TEST_REQUIRES => {
         'Test::More' => 0,
     },
+    PREREQ_PM => {
+        'Sub::Util' => '1.40',
+    },
     MIN_PERL_VERSION    => '5.008001',
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'PGObject-Util-DBMethod-*' },

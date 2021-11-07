@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Exporter 'import';
+use Sub::Util qw( set_subname );
 
 =head1 NAME
 
@@ -125,6 +126,7 @@ sub dbmethod {
        return @results;
     };
     no strict 'refs';
+    set_subname "${target}::${name}", $coderef;
     *{"${target}::${name}"} = $coderef;
 }
 
