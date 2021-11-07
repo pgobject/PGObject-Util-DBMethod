@@ -1,6 +1,6 @@
 Revision history for PGObject-Util-DBMethod
 
-1.01.000 To be released
+1.01.000 2021-11-07
          Improve backtraces by allocating a function name to the generated
          'dbmethod'.
 
