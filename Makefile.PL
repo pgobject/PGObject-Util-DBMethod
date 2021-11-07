@@ -12,7 +12,7 @@ WriteMakefile(
       ? ('LICENSE'=> 'BSD')
       : ()),
     PL_FILES            => {},
-    BUILD_REQUIRES => {
+    TEST_REQUIRES => {
         'Test::More' => 0,
     },
     MIN_PERL_VERSION    => '5.008001',
